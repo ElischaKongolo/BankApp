@@ -1,0 +1,12 @@
+C:\Users\User\BankApp\BankApp.Core\bin\Debug\net5.0\BankApp.Core.deps.json
+C:\Users\User\BankApp\BankApp.Core\bin\Debug\net5.0\BankApp.Core.dll
+C:\Users\User\BankApp\BankApp.Core\bin\Debug\net5.0\ref\BankApp.Core.dll
+C:\Users\User\BankApp\BankApp.Core\bin\Debug\net5.0\BankApp.Core.pdb
+C:\Users\User\BankApp\BankApp.Core\obj\Debug\net5.0\BankApp.Core.csproj.AssemblyReference.cache
+C:\Users\User\BankApp\BankApp.Core\obj\Debug\net5.0\BankApp.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\BankApp\BankApp.Core\obj\Debug\net5.0\BankApp.Core.AssemblyInfoInputs.cache
+C:\Users\User\BankApp\BankApp.Core\obj\Debug\net5.0\BankApp.Core.AssemblyInfo.cs
+C:\Users\User\BankApp\BankApp.Core\obj\Debug\net5.0\BankApp.Core.csproj.CoreCompileInputs.cache
+C:\Users\User\BankApp\BankApp.Core\obj\Debug\net5.0\BankApp.Core.dll
+C:\Users\User\BankApp\BankApp.Core\obj\Debug\net5.0\ref\BankApp.Core.dll
+C:\Users\User\BankApp\BankApp.Core\obj\Debug\net5.0\BankApp.Core.pdb
