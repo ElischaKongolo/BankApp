@@ -1,0 +1,122 @@
+@model BankApp.Core.Models.EWallet
+@using Microsoft.AspNetCore.Http
+@{
+    ViewData["Title"] = "Create E-Wallet";
+    var userId = Context.Session.GetInt32("UserId") ?? 1;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Create New E-Wallet</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="WalletName" class="form-label">Wallet Name</label>
+                            <input asp-for="WalletName" class="form-control" placeholder="e.g., Shopping Wallet, Travel Fund" />
+                            <span asp-validation-for="WalletName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="WalletType" class="form-label">Wallet Type</label>
+                            <select asp-for="WalletType" class="form-control">
+                                <option value="">Select wallet type</option>
+                                <option value="DigitalWallet">💳 Digital Wallet</option>
+                                <option value="MobileMoney">📱 Mobile Money</option>
+                                <option value="CryptoWallet">₿ Crypto Wallet</option>
+                                <option value="PrepaidCard">💎 Prepaid Card</option>
+                                <option value="GiftCard">🎁 Gift Card</option>
+                            </select>
+                            <span asp-validation-for="WalletType" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Optional description for your wallet"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Link to Bank Account (Optional)</label>
+                            <select name="LinkedAccountId" class="form-control">
+                                <option value="">No linked account</option>
+                                @{
+                                    // This would be populated with user's accounts
+                                    <option value="1">Checking Account (****1234)</option>
+                                    <option value="2">Savings Account (****5678)</option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">Linking allows easy transfers between wallet and bank account</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/EWallet" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create Wallet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-bottom: none;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 20px;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    padding: 12px;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(67, 24, 255, 0.25);
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background: var(--primary-color);
+    opacity: 0.9;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    border-color: #6c757d;
+}
+</style>

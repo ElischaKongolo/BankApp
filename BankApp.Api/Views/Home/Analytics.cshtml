@@ -1,0 +1,401 @@
+@{
+    ViewData["Title"] = "Analytics";
+    var months = ViewBag.Months as List<string> ?? new List<string>();
+    var deposits = ViewBag.Deposits as List<decimal> ?? new List<decimal>();
+    var withdrawals = ViewBag.Withdrawals as List<decimal> ?? new List<decimal>();
+    var netSavings = ViewBag.NetSavings as List<decimal> ?? new List<decimal>();
+}
+
+<div class="analytics-container">
+    <div class="container">
+        <h1>Monthly Analysis</h1>
+        
+        <!-- Summary Cards -->
+        <div class="analytics-summary">
+            <div class="analytics-card income">
+                <div class="card-icon">📥</div>
+                <div class="card-content">
+                    <h3>Total Income</h3>
+                    <p class="amount">@deposits.Sum().ToString("C")</p>
+                </div>
+            </div>
+            <div class="analytics-card expense">
+                <div class="card-icon">📤</div>
+                <div class="card-content">
+                    <h3>Total Expenses</h3>
+                    <p class="amount">@withdrawals.Sum().ToString("C")</p>
+                </div>
+            </div>
+            <div class="analytics-card savings">
+                <div class="card-icon">💰</div>
+                <div class="card-content">
+                    <h3>Net Savings</h3>
+                    <p class="amount">@netSavings.Sum().ToString("C")</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <!-- Monthly Trends Chart -->
+            <div class="chart-card large">
+                <h2>Monthly Trends</h2>
+                <canvas id="trendsChart"></canvas>
+            </div>
+            
+            <!-- Pie Chart -->
+            <div class="chart-card">
+                <h2>Income vs Expenses</h2>
+                <canvas id="pieChart"></canvas>
+            </div>
+            
+            <!-- Net Savings Chart -->
+            <div class="chart-card">
+                <h2>Net Savings</h2>
+                <canvas id="savingsChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Monthly Breakdown Table -->
+        <div class="breakdown-section">
+            <h2>Monthly Breakdown</h2>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Income</th>
+                            <th>Expenses</th>
+                            <th>Net Savings</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < months.Count; i++)
+                        {
+                            <tr>
+                                <td>@months[i]</td>
+                                <td class="positive">@deposits[i].ToString("C")</td>
+                                <td class="negative">@withdrawals[i].ToString("C")</td>
+                                <td class="@(netSavings[i] >= 0 ? "positive" : "negative")">@netSavings[i].ToString("C")</td>
+                                <td>
+                                    @if (netSavings[i] > 0)
+                                    {
+                                        <span class="badge success">Saved</span>
+                                    }
+                                    else if (netSavings[i] < 0)
+                                    {
+                                        <span class="badge danger">Deficit</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge neutral">Break-even</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Monthly Trends Chart
+    const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+    new Chart(trendsCtx, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(Json.Serialize(months)),
+            datasets: [
+                {
+                    label: 'Income',
+                    data: @Html.Raw(Json.Serialize(deposits)),
+                    backgroundColor: '#10b981',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Expenses',
+                    data: @Html.Raw(Json.Serialize(withdrawals)),
+                    backgroundColor: '#ef4444',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Pie Chart - Income vs Expenses
+    const totalIncome = @deposits.Sum();
+    const totalExpense = @withdrawals.Sum();
+    
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Income', 'Expenses'],
+            datasets: [{
+                data: [totalIncome, totalExpense],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Net Savings Line Chart
+    const savingsCtx = document.getElementById('savingsChart').getContext('2d');
+    new Chart(savingsCtx, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(Json.Serialize(months)),
+            datasets: [{
+                label: 'Net Savings',
+                data: @Html.Raw(Json.Serialize(netSavings)),
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .analytics-container {
+        padding: 40px 0;
+        background: var(--bg-color);
+        min-height: calc(100vh - 200px);
+    }
+
+    .analytics-container h1 {
+        margin-bottom: 24px;
+    }
+
+    .analytics-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .analytics-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: var(--shadow);
+    }
+
+    .analytics-card.income {
+        border-left: 4px solid #10b981;
+    }
+
+    .analytics-card.expense {
+        border-left: 4px solid #ef4444;
+    }
+
+    .analytics-card.savings {
+        border-left: 4px solid #2563eb;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        background: var(--bg-color);
+    }
+
+    .analytics-card.income .card-icon {
+        background: #d1fae5;
+    }
+
+    .analytics-card.expense .card-icon {
+        background: #fee2e2;
+    }
+
+    .analytics-card.savings .card-icon {
+        background: #dbeafe;
+    }
+
+    .card-content h3 {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+
+    .card-content .amount {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .analytics-card.income .amount {
+        color: #10b981;
+    }
+
+    .analytics-card.expense .amount {
+        color: #ef4444;
+    }
+
+    .analytics-card.savings .amount {
+        color: #2563eb;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    @@media (max-width: 1024px) {
+        .charts-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        .chart-card.large {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+    }
+
+    .chart-card h2 {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    .chart-card canvas {
+        max-height: 250px;
+    }
+
+    .breakdown-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+    }
+
+    .breakdown-section h2 {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table th {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .data-table td {
+        font-size: 14px;
+    }
+
+    .data-table .positive {
+        color: #10b981;
+        font-weight: 500;
+    }
+
+    .data-table .negative {
+        color: #ef4444;
+        font-weight: 500;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge.success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge.danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge.neutral {
+        background: var(--bg-color);
+        color: var(--text-secondary);
+    }
+</style>

@@ -1,0 +1,296 @@
+@model BankApp.Core.Models.EWallet
+@{
+    ViewData["Title"] = $"E-Wallet - {Model.WalletName}";
+    var transactions = ViewBag.Transactions as IEnumerable<BankApp.Core.Models.EWalletTransaction>;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Wallet Details Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-1">@Model.WalletName</h4>
+                            <small class="text-muted">@Model.WalletType.ToString() • @Model.WalletNumber</small>
+                        </div>
+                        <span class="badge @(Model.Status == BankApp.Core.Models.EWalletStatus.Active ? "bg-success" : "bg-secondary")">
+                            @Model.Status.ToString()
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="wallet-balance-display">
+                                <div class="text-muted small mb-2">Available Balance</div>
+                                <div class="h2 mb-0 text-primary">@Model.AvailableBalance.ToString("C")</div>
+                                @if (Model.Balance != Model.AvailableBalance)
+                                {
+                                    <small class="text-muted">Total Balance: @Model.Balance.ToString("C")</small>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="wallet-info-grid">
+                                <div class="info-item">
+                                    <small class="text-muted">Created</small>
+                                    <div>@Model.CreatedAt.ToString("MMMM dd, yyyy")</div>
+                                </div>
+                                <div class="info-item">
+                                    <small class="text-muted">Last Transaction</small>
+                                    <div>@(Model.LastTransactionDate?.ToString("MMM dd, yyyy") ?? "No transactions")</div>
+                                </div>
+                                @if (Model.LinkedAccount != null)
+                                {
+                                    <div class="info-item">
+                                        <small class="text-muted">Linked Account</small>
+                                        <div>****@Model.LinkedAccount.AccountNumber.Substring(Math.Max(0, Model.LinkedAccount.AccountNumber.Length - 4))</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <small class="text-muted">Description</small>
+                            <div class="mt-1">@Model.Description</div>
+                        </div>
+                    }
+
+                    <div class="mt-4">
+                        <div class="btn-group" role="group">
+                            <a href="/EWallet/Fund/@Model.Id" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Fund Wallet
+                            </a>
+                            <a href="/EWallet/Transfer/@Model.Id" class="btn btn-info">
+                                <i class="fas fa-exchange-alt"></i> Transfer
+                            </a>
+                            <a href="/EWallet/Edit/@Model.Id" class="btn btn-outline-secondary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    @if (transactions != null && transactions.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Balance</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var transaction in transactions)
+                                    {
+                                        <tr>
+                                            <td>@transaction.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                            <td>@transaction.Description</td>
+                                            <td>
+                                                <span class="badge bg-@(GetTransactionTypeColor(transaction.Type))">
+                                                    @transaction.Type.ToString()
+                                                </span>
+                                            </td>
+                                            <td class="@(GetTransactionAmountClass(transaction.Type))">
+                                                @(GetTransactionAmount(transaction))
+                                            </td>
+                                            <td>@transaction.BalanceAfter.ToString("C")</td>
+                                            <td>
+                                                <span class="badge bg-@(GetTransactionStatusColor(transaction.Status))">
+                                                    @transaction.Status.ToString()
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="#" class="btn btn-outline-primary">View All Transactions</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-exchange-alt fa-2x text-muted mb-3"></i>
+                            <h5>No Transactions Yet</h5>
+                            <p class="text-muted">Start using your wallet to see transaction history here</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Quick Actions Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/EWallet/Fund/@Model.Id" class="btn btn-success w-100">
+                            <i class="fas fa-plus"></i> Add Money
+                        </a>
+                        <a href="/EWallet/Transfer/@Model.Id" class="btn btn-info w-100">
+                            <i class="fas fa-exchange-alt"></i> Send Money
+                        </a>
+                        <a href="/EWallet/Edit/@Model.Id" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Stats Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Wallet Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Funded</div>
+                            <div class="stat-value text-success">
+                                @Model.Balance.ToString("C")
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Available</div>
+                            <div class="stat-value text-primary">
+                                @Model.AvailableBalance.ToString("C")
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Status</div>
+                            <div class="stat-value">
+                                <span class="badge @(Model.Status == BankApp.Core.Models.EWalletStatus.Active ? "bg-success" : "bg-secondary")">
+                                    @Model.Status.ToString()
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetTransactionTypeColor(BankApp.Core.Models.EWalletTransactionType type)
+    {
+        return type switch
+        {
+            BankApp.Core.Models.EWalletTransactionType.Fund => "success",
+            BankApp.Core.Models.EWalletTransactionType.Withdraw => "danger",
+            BankApp.Core.Models.EWalletTransactionType.Transfer => "info",
+            BankApp.Core.Models.EWalletTransactionType.Payment => "warning",
+            BankApp.Core.Models.EWalletTransactionType.Refund => "secondary",
+            _ => "light"
+        };
+    }
+
+    private string GetTransactionStatusColor(BankApp.Core.Models.EWalletTransactionStatus status)
+    {
+        return status switch
+        {
+            BankApp.Core.Models.EWalletTransactionStatus.Completed => "success",
+            BankApp.Core.Models.EWalletTransactionStatus.Pending => "warning",
+            BankApp.Core.Models.EWalletTransactionStatus.Failed => "danger",
+            BankApp.Core.Models.EWalletTransactionStatus.Cancelled => "secondary",
+            _ => "light"
+        };
+    }
+
+    private string GetTransactionAmountClass(BankApp.Core.Models.EWalletTransactionType type)
+    {
+        return type == BankApp.Core.Models.EWalletTransactionType.Fund || 
+               type == BankApp.Core.Models.EWalletTransactionType.Refund ||
+               type == BankApp.Core.Models.EWalletTransactionType.Reward ? 
+               "text-success" : "text-danger";
+    }
+
+    private string GetTransactionAmount(BankApp.Core.Models.EWalletTransaction transaction)
+    {
+        var sign = transaction.Type == BankApp.Core.Models.EWalletTransactionType.Fund || 
+                   transaction.Type == BankApp.Core.Models.EWalletTransactionType.Refund ||
+                   transaction.Type == BankApp.Core.Models.EWalletTransactionType.Reward ? "+" : "-";
+        return $"{sign}{transaction.Amount:C}";
+    }
+}
+
+<style>
+.wallet-balance-display .h2 {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.wallet-info-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.info-item {
+    padding: 12px;
+    background: var(--bg-color);
+    border-radius: 8px;
+}
+
+.stats-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 12px;
+    background: var(--bg-color);
+    border-radius: 8px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.d-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.badge {
+    font-size: 11px;
+    padding: 4px 8px;
+}
+</style>

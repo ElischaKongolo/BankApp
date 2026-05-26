@@ -1,0 +1,339 @@
+@model CalculatorViewModel
+
+@{
+    ViewData["Title"] = "Financial Calculator";
+}
+
+<div class="calculator-page">
+    <div class="container">
+        <h1>Financial Calculator</h1>
+        
+        <div class="calc-grid">
+            <!-- Loan Calculator -->
+            <div class="calc-card">
+                <h2>🏦 Loan Calculator</h2>
+                <form asp-action="CalculateLoan" asp-controller="Home" method="post">
+                    <div class="form-group">
+                        <label asp-for="Principal">Principal Amount</label>
+                        <div class="input-prefix">
+                            <span>$</span>
+                            <input asp-for="Principal" class="form-control" type="number" step="100" placeholder="10000" />
+                        </div>
+                        <span asp-validation-for="Principal" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label asp-for="InterestRate">Interest Rate (%)</label>
+                            <input asp-for="InterestRate" class="form-control" type="number" step="0.1" placeholder="5.0" />
+                            <span asp-validation-for="InterestRate" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group half">
+                            <label asp-for="LoanTermYears">Term (Years)</label>
+                            <input asp-for="LoanTermYears" class="form-control" type="number" min="1" max="50" placeholder="5" />
+                            <span asp-validation-for="LoanTermYears" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-calculate">Calculate</button>
+                </form>
+                
+                @if (Model?.MonthlyPayment > 0)
+                {
+                    <div class="results">
+                        <h3>Results</h3>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="label">Monthly Payment</span>
+                                <span class="value">@Model.MonthlyPayment.ToString("C")</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Total Payment</span>
+                                <span class="value">@Model.TotalPayment.ToString("C")</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Total Interest</span>
+                                <span class="value interest">@Model.TotalInterest.ToString("C")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <!-- Savings Goal Calculator -->
+            <div class="calc-card">
+                <h2>💰 Savings Goal Calculator</h2>
+                <div class="calc-form">
+                    <div class="form-group">
+                        <label>Savings Goal</label>
+                        <div class="input-prefix">
+                            <span>$</span>
+                            <input type="number" id="savingsGoal" class="form-control" placeholder="50000" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Current Savings</label>
+                        <div class="input-prefix">
+                            <span>$</span>
+                            <input type="number" id="currentSavings" class="form-control" placeholder="10000" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Monthly Contribution</label>
+                        <div class="input-prefix">
+                            <span>$</span>
+                            <input type="number" id="monthlyContribution" class="form-control" placeholder="500" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Annual Interest Rate (%)</label>
+                        <input type="number" id="savingsRate" class="form-control" step="0.1" placeholder="4.0" />
+                    </div>
+                    
+                    <button type="button" class="btn-calculate" onclick="calculateSavings()">Calculate</button>
+                    
+                    <div id="savingsResults" class="results" style="display: none;">
+                        <h3>Results</h3>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="label">Months to Goal</span>
+                                <span class="value" id="monthsToGoal">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Total Contributions</span>
+                                <span class="value" id="totalContributions">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Interest Earned</span>
+                                <span class="value interest" id="interestEarned">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Compound Interest Calculator -->
+            <div class="calc-card">
+                <h2>📈 Compound Interest</h2>
+                <div class="calc-form">
+                    <div class="form-group">
+                        <label>Initial Investment</label>
+                        <div class="input-prefix">
+                            <span>$</span>
+                            <input type="number" id="initialInvestment" class="form-control" placeholder="10000" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Interest Rate (%)</label>
+                            <input type="number" id="compoundRate" class="form-control" step="0.1" placeholder="7.0" />
+                        </div>
+                        
+                        <div class="form-group half">
+                            <label>Years</label>
+                            <input type="number" id="compoundYears" class="form-control" placeholder="10" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Compound Frequency</label>
+                        <select id="compoundFrequency" class="form-control">
+                            <option value="12">Monthly</option>
+                            <option value="4">Quarterly</option>
+                            <option value="2">Semi-Annually</option>
+                            <option value="1">Annually</option>
+                        </select>
+                    </div>
+                    
+                    <button type="button" class="btn-calculate" onclick="calculateCompound()">Calculate</button>
+                    
+                    <div id="compoundResults" class="results" style="display: none;">
+                        <h3>Results</h3>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="label">Final Amount</span>
+                                <span class="value" id="finalAmount">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Interest Earned</span>
+                                <span class="value interest" id="compoundInterest">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateSavings() {
+        const goal = parseFloat(document.getElementById('savingsGoal').value) || 0;
+        const current = parseFloat(document.getElementById('currentSavings').value) || 0;
+        const monthly = parseFloat(document.getElementById('monthlyContribution').value) || 0;
+        const rate = (parseFloat(document.getElementById('savingsRate').value) || 0) / 100 / 12;
+        
+        if (goal <= 0 || monthly <= 0) {
+            alert('Please enter valid values');
+            return;
+        }
+        
+        let balance = current;
+        let months = 0;
+        let totalContributed = current;
+        
+        while (balance < goal && months < 600) {
+            balance = balance * (1 + rate) + monthly;
+            totalContributed += monthly;
+            months++;
+        }
+        
+        const interest = balance - totalContributed;
+        
+        document.getElementById('monthsToGoal').textContent = months + ' months';
+        document.getElementById('totalContributions').textContent = '$' + totalContributed.toFixed(2);
+        document.getElementById('interestEarned').textContent = '$' + interest.toFixed(2);
+        document.getElementById('savingsResults').style.display = 'block';
+    }
+    
+    function calculateCompound() {
+        const principal = parseFloat(document.getElementById('initialInvestment').value) || 0;
+        const rate = (parseFloat(document.getElementById('compoundRate').value) || 0) / 100;
+        const years = parseInt(document.getElementById('compoundYears').value) || 0;
+        const frequency = parseInt(document.getElementById('compoundFrequency').value) || 12;
+        
+        if (principal <= 0 || years <= 0) {
+            alert('Please enter valid values');
+            return;
+        }
+        
+        const final = principal * Math.pow(1 + rate / frequency, frequency * years);
+        const interest = final - principal;
+        
+        document.getElementById('finalAmount').textContent = '$' + final.toFixed(2);
+        document.getElementById('compoundInterest').textContent = '$' + interest.toFixed(2);
+        document.getElementById('compoundResults').style.display = 'block';
+    }
+</script>
+
+<style>
+    .calculator-page {
+        padding: 40px 0;
+        background: var(--bg-color);
+        min-height: calc(100vh - 200px);
+    }
+
+    .calculator-page h1 {
+        margin-bottom: 24px;
+    }
+
+    .calc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 24px;
+    }
+
+    .calc-card {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: var(--shadow);
+    }
+
+    .calc-card h2 {
+        font-size: 20px;
+        margin-bottom: 24px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .input-prefix {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-prefix span {
+        position: absolute;
+        left: 16px;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .input-prefix input {
+        padding-left: 32px;
+    }
+
+    .btn-calculate {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 8px;
+    }
+
+    .btn-calculate:hover {
+        background: var(--primary-dark);
+    }
+
+    .results {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 2px solid var(--border-color);
+    }
+
+    .results h3 {
+        font-size: 16px;
+        margin-bottom: 16px;
+        color: var(--text-secondary);
+    }
+
+    .result-grid {
+        display: grid;
+        gap: 12px;
+    }
+
+    .result-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--bg-color);
+        border-radius: 8px;
+    }
+
+    .result-item .label {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .result-item .value {
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .result-item .value.interest {
+        color: var(--success-color);
+    }
+
+    @@media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

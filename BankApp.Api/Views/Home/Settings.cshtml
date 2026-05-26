@@ -1,0 +1,714 @@
+@model BankApp.Core.Models.User
+@{
+    ViewData["Title"] = "Settings";
+    var availableThemes = ViewBag.AvailableThemes as IEnumerable<BankApp.Core.Models.UserTheme>;
+    var currentTheme = ViewBag.CurrentTheme as BankApp.Core.Models.UserTheme;
+}
+
+<div class="settings-container">
+    <div class="container">
+        <div class="page-header">
+            <h1>⚙️ Settings</h1>
+            <p>Manage your preferences and account settings</p>
+        </div>
+
+        <div class="settings-grid">
+            <!-- Appearance Settings -->
+            <div class="settings-card">
+                <div class="settings-icon">🎨</div>
+                <div class="settings-content">
+                    <h2>Appearance</h2>
+                    <p>Customize the look and feel of your banking experience</p>
+                    
+                    <div class="theme-section">
+                        <h3>Choose Your Theme</h3>
+                        <div class="theme-grid">
+                            @if (availableThemes != null)
+                            {
+                                foreach (var theme in availableThemes)
+                                {
+                                    <div class="theme-option @(currentTheme?.ThemeName == theme.ThemeName ? "active" : "")" 
+                                         data-theme="@theme.ThemeName"
+                                         data-primary="@theme.PrimaryColor"
+                                         data-secondary="@theme.SecondaryColor"
+                                         data-background="@theme.BackgroundColor"
+                                         data-surface="@theme.SurfaceColor"
+                                         data-text="@theme.TextColor"
+                                         data-muted="@theme.TextMutedColor"
+                                         data-dark="@theme.IsDarkMode.ToString().ToLower()"
+                                         onclick="selectTheme(this)">
+                                        <div class="theme-preview-card" style="background: @theme.SurfaceColor; border: 2px solid @theme.PrimaryColor;">
+                                            <div class="theme-preview-header" style="background: @theme.PrimaryColor; color: white;">
+                                                <div class="preview-dot" style="background: @theme.SecondaryColor;"></div>
+                                                <div class="preview-dot" style="background: @theme.TextMutedColor;"></div>
+                                            </div>
+                                            <div class="theme-preview-content">
+                                                <div class="preview-line" style="background: @theme.TextColor; opacity: 0.8;"></div>
+                                                <div class="preview-line" style="background: @theme.TextMutedColor; width: 60%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="theme-info">
+                                            <h4>@theme.ThemeName</h4>
+                                            <p>@(theme.IsDarkMode ? "🌙 Dark" : "☀️ Light")</p>
+                                        </div>
+                                        @if (currentTheme?.ThemeName == theme.ThemeName)
+                                        {
+                                            <div class="theme-selected">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 6L9 17l-5-5"/>
+                                                </svg>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="theme-actions">
+                        <button id="save-theme-btn" class="btn-modern btn-primary" onclick="saveTheme()">
+                            Save Theme Preference
+                        </button>
+                        <button id="reset-theme-btn" class="btn-modern btn-outline" onclick="resetTheme()">
+                            Reset to Default
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Information -->
+            <div class="settings-card profile-card">
+                <div class="settings-icon">👤</div>
+                <div class="settings-content">
+                    <h2>Profile Information</h2>
+                    <p>Your personal details and contact info</p>
+                    
+                    <div class="profile-details" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+                        <div class="info-row">
+                            <span class="label">Full Name</span>
+                            <span class="value">@Model.FirstName @Model.LastName</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Email Address</span>
+                            <span class="value">@Model.Email</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Phone Number</span>
+                            <span class="value">@Model.PhoneNumber</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Address</span>
+                            <span class="value">@Model.Address</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Date of Birth</span>
+                            <span class="value">@Model.DateOfBirth.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-links" style="padding-top: 16px; border-top: 1px solid var(--border-color);">
+                        <a href="/Home/Accounts" class="settings-link">
+                            <span>💳</span>
+                            <span>View My Accounts</span>
+                            <span class="arrow">→</span>
+                        </a>
+                        <a href="/Home/Transactions" class="settings-link">
+                            <span>💸</span>
+                            <span>Transaction History</span>
+                            <span class="arrow">→</span>
+                        </a>
+                        <a href="/Home/Logout" class="settings-link logout">
+                            <span>🚪</span>
+                            <span>Logout</span>
+                            <span class="arrow">→</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="settings-card">
+                <div class="settings-icon">🔔</div>
+                <div class="settings-content">
+                    <h2>Notifications</h2>
+                    <p>Choose how you want to be notified</p>
+                    
+                    <div class="notification-options">
+                        <label class="toggle-label">
+                            <input type="checkbox" checked disabled />
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-text">Email notifications</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" checked disabled />
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-text">Transaction alerts</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" disabled />
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-text">SMS notifications</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="settings-card">
+                <div class="settings-icon">🔒</div>
+                <div class="settings-content">
+                    <h2>Security</h2>
+                    <p>Keep your account safe and secure</p>
+                    
+                    <div class="security-info">
+                        <div class="info-row">
+                            <span class="label">Two-Factor Authentication</span>
+                            <span class="status disabled">Not Enabled</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Last Login</span>
+                            <span class="value">@DateTime.Now.ToString("MMM dd, yyyy HH:mm")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Session Timeout</span>
+                            <span class="value">30 minutes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help & Support -->
+            <div class="settings-card">
+                <div class="settings-icon">❓</div>
+                <div class="settings-content">
+                    <h2>Help & Support</h2>
+                    <p>Get help when you need it</p>
+                    
+                    <div class="support-links">
+                        <a href="#" class="settings-link" onclick="alert('Help Center coming soon!')">
+                            <span>📚</span>
+                            <span>Help Center</span>
+                            <span class="arrow">→</span>
+                        </a>
+                        <a href="#" class="settings-link" onclick="alert('Contact Support coming soon!')">
+                            <span>📞</span>
+                            <span>Contact Support</span>
+                            <span class="arrow">→</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Info -->
+            <div class="settings-card">
+                <div class="settings-icon">ℹ️</div>
+                <div class="settings-content">
+                    <h2>About</h2>
+                    <p>Application information</p>
+                    
+                    <div class="app-info">
+                        <div class="info-row">
+                            <span class="label">Version</span>
+                            <span class="value">1.0.0</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Build</span>
+                            <span class="value">2026.04.27</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">© 2026 BankApp</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedTheme = null;
+    
+    function selectTheme(element) {
+        // Remove active class from all themes
+        document.querySelectorAll('.theme-option').forEach(opt => {
+            opt.classList.remove('active');
+        });
+        
+        // Add active class to selected theme
+        element.classList.add('active');
+        
+        // Store selected theme data
+        selectedTheme = {
+            name: element.dataset.theme,
+            primary: element.dataset.primary,
+            secondary: element.dataset.secondary,
+            background: element.dataset.background,
+            surface: element.dataset.surface,
+            text: element.dataset.text,
+            muted: element.dataset.muted,
+            isDark: element.dataset.dark === 'true'
+        };
+        
+        // Apply theme preview
+        applyTheme(selectedTheme);
+    }
+    
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        
+        // Apply CSS custom properties
+        root.style.setProperty('--primary-color', theme.primary);
+        root.style.setProperty('--secondary-color', theme.secondary);
+        root.style.setProperty('--bg-color', theme.background);
+        root.style.setProperty('--card-bg', theme.surface);
+        root.style.setProperty('--text-primary', theme.text);
+        root.style.setProperty('--text-secondary', theme.muted);
+        
+        // Set data attribute for any CSS that needs it
+        root.setAttribute('data-theme', theme.isDark ? 'dark' : 'light');
+        
+        // Store in localStorage for immediate persistence
+        localStorage.setItem('selectedTheme', JSON.stringify(theme));
+    }
+    
+    async function saveTheme() {
+        if (!selectedTheme) {
+            alert('Please select a theme first');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/Home/SetTheme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify({
+                    themeName: selectedTheme.name
+                })
+            });
+            
+            if (response.ok) {
+                // Show success message
+                const btn = document.getElementById('save-theme-btn');
+                const originalText = btn.textContent;
+                btn.textContent = ' Theme Saved!';
+                btn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+                
+                // Update localStorage
+                localStorage.setItem('userTheme', selectedTheme.name);
+            } else {
+                throw new Error('Failed to save theme');
+            }
+        } catch (error) {
+            alert('Error saving theme: ' + error.message);
+        }
+    }
+    
+    async function resetTheme() {
+        try {
+            const response = await fetch('/Home/SetTheme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify({
+                    themeName: 'Light'
+                })
+            });
+            
+            if (response.ok) {
+                // Reset to light theme
+                const lightTheme = document.querySelector('[data-theme="Light"]');
+                if (lightTheme) {
+                    selectTheme(lightTheme);
+                }
+                
+                // Show success message
+                const btn = document.getElementById('reset-theme-btn');
+                const originalText = btn.textContent;
+                btn.textContent = ' Reset Complete';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }
+        } catch (error) {
+            alert('Error resetting theme: ' + error.message);
+        }
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Try to restore saved theme from localStorage
+        const savedTheme = localStorage.getItem('selectedTheme');
+        if (savedTheme) {
+            try {
+                const theme = JSON.parse(savedTheme);
+                applyTheme(theme);
+                
+                // Select the corresponding theme option
+                const themeOption = document.querySelector(`[data-theme="${theme.name}"]`);
+                if (themeOption) {
+                    selectTheme(themeOption);
+                }
+            } catch (e) {
+                console.error('Error parsing saved theme:', e);
+            }
+        }
+    });
+</script>
+
+<style>
+    .settings-container {
+        padding: 40px 0;
+        background: var(--bg-color);
+        min-height: calc(100vh - 200px);
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .page-header p {
+        color: var(--text-secondary);
+    }
+
+    .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+    }
+
+    @@media (max-width: 480px) {
+        .settings-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .settings-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        gap: 16px;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .settings-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .settings-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--bg-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .settings-content {
+        flex: 1;
+    }
+
+    .settings-content h2 {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .settings-content > p {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+
+    .theme-section {
+        margin-top: 16px;
+    }
+
+    .theme-section h3 {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+    }
+
+    .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .theme-option {
+        border-radius: 12px;
+        padding: 16px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        background: var(--bg-color);
+    }
+
+    .theme-option:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .theme-option.active {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(67, 24, 255, 0.1);
+    }
+
+    .theme-preview-card {
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 12px;
+        height: 80px;
+        position: relative;
+    }
+
+    .theme-preview-header {
+        height: 24px;
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        gap: 8px;
+    }
+
+    .preview-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .theme-preview-content {
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .preview-line {
+        height: 4px;
+        border-radius: 2px;
+        width: 80%;
+    }
+
+    .theme-info h4 {
+        font-size: 16px;
+        margin: 0 0 4px 0;
+        color: var(--text-primary);
+    }
+
+    .theme-info p {
+        font-size: 12px;
+        margin: 0;
+        color: var(--text-secondary);
+    }
+
+    .theme-selected {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 24px;
+        height: 24px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .theme-actions {
+        display: flex;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn-modern {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-color);
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+    }
+
+    .btn-outline:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .settings-links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .settings-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-primary);
+        background: var(--bg-color);
+        transition: background 0.2s;
+    }
+
+    .settings-link:hover {
+        background: var(--border-color);
+    }
+
+    .settings-link.logout {
+        color: #ef4444;
+    }
+
+    .settings-link span:first-child {
+        font-size: 20px;
+    }
+
+    .settings-link span:nth-child(2) {
+        flex: 1;
+    }
+
+    .arrow {
+        color: var(--text-secondary);
+    }
+
+    .notification-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+    }
+
+    .toggle-label input {
+        display: none;
+    }
+
+    .toggle-slider {
+        width: 44px;
+        height: 24px;
+        background: #cbd5e1;
+        border-radius: 12px;
+        position: relative;
+        transition: background 0.3s;
+        flex-shrink: 0;
+    }
+
+    .toggle-label input:checked + .toggle-slider {
+        background: var(--primary-color);
+    }
+
+    .toggle-label input:checked + .toggle-slider::after {
+        left: calc(100% - 22px);
+    }
+
+    .toggle-slider::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: left 0.3s;
+    }
+
+    .toggle-text {
+        font-size: 14px;
+    }
+
+    .security-info,
+    .app-info {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .info-row .label {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .info-row .value {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .info-row .status {
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+
+    .info-row .status.disabled {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .support-links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+</style>

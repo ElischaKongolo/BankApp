@@ -1,0 +1,356 @@
+@model IEnumerable<BankApp.Core.Models.Account>
+
+@{
+    ViewData["Title"] = "My Accounts";
+    decimal totalBalance = Model?.Sum(a => a.Balance) ?? 0;
+}
+
+<div class="accounts-page">
+    <div class="container">
+        <h1>My Accounts</h1>
+        
+        <div class="accounts-header">
+            <div class="total-balance-card">
+                <div class="balance-info">
+                    <h2>Total Balance</h2>
+                    <p class="total-amount">@totalBalance.ToString("C")</p>
+                </div>
+                <div class="balance-actions">
+                    <a href="/Home/Transactions" class="btn-primary">Send Money</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="accounts-grid">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var account in Model)
+                {
+                    <div class="account-detail-card @account.AccountType.ToString().ToLower()">
+                        <div class="account-header">
+                            <div class="account-type-icon">
+                                @(account.AccountType == BankApp.Core.Models.AccountType.Checking ? "💳" :
+                                  account.AccountType == BankApp.Core.Models.AccountType.Savings ? "🏦" : "🏢")
+                            </div>
+                            <div class="account-type-info">
+                                <h3>@account.AccountType Account</h3>
+                                <p class="account-num">@account.AccountNumber</p>
+                            </div>
+                            <span class="account-status @account.Status.ToString().ToLower()">@account.Status</span>
+                        </div>
+                        
+                        <div class="account-balance-section">
+                            <p class="balance-label">Available Balance</p>
+                            <p class="balance-amount">@account.Balance.ToString("C")</p>
+                        </div>
+                        
+                        <div class="account-details">
+                            <div class="detail-row">
+                                <span>Account Type</span>
+                                <span>@account.AccountType</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Opened</span>
+                                <span>@account.CreatedAt.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Daily Limit</span>
+                                <span>@account.DailyTransferLimit.ToString("C")</span>
+                            </div>
+                        </div>
+                        
+                        <div class="account-actions">
+                            <a href="/Home/Transactions?accountId=@account.Id" class="btn-action">Transfer</a>
+                            <a href="/Home/AccountDetails/@account.Id" class="btn-action secondary">View Details</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-accounts">
+                    <div class="empty-icon">💳</div>
+                    <h2>No Accounts Found</h2>
+                    <p>You don't have any accounts yet. Create your first account to get started!</p>
+                    <div class="create-account-buttons">
+                        <form asp-action="CreateCheckingAccount" asp-controller="Home" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-primary">
+                                <span>💳</span> Open Checking Account
+                            </button>
+                        </form>
+                        <form asp-action="CreateSavingsAccount" asp-controller="Home" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-success">
+                                <span>🏦</span> Open Savings Account
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .accounts-page {
+        padding: 40px 0;
+        background: var(--bg-color);
+        min-height: calc(100vh - 200px);
+    }
+
+    .accounts-page h1 {
+        margin-bottom: 24px;
+    }
+
+    .accounts-header {
+        margin-bottom: 32px;
+    }
+
+    .total-balance-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .balance-info h2 {
+        font-size: 16px;
+        opacity: 0.9;
+        margin-bottom: 8px;
+    }
+
+    .total-amount {
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    .btn-primary {
+        background: white;
+        color: var(--primary-color);
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: transform 0.2s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+    }
+
+    .accounts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 24px;
+    }
+
+    .account-detail-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border-top: 4px solid var(--primary-color);
+    }
+
+    .account-detail-card.checking {
+        border-top-color: #2563eb;
+    }
+
+    .account-detail-card.savings {
+        border-top-color: #10b981;
+    }
+
+    .account-detail-card.business {
+        border-top-color: #f59e0b;
+    }
+
+    .account-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .account-type-icon {
+        font-size: 28px;
+        width: 48px;
+        height: 48px;
+        background: var(--bg-color);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .account-type-info {
+        flex: 1;
+    }
+
+    .account-type-info h3 {
+        font-size: 16px;
+        margin-bottom: 2px;
+    }
+
+    .account-num {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .account-status {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .account-status.active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .account-balance-section {
+        margin-bottom: 20px;
+    }
+
+    .balance-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+
+    .balance-amount {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .account-details {
+        margin-bottom: 20px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-row span:first-child {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .account-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-action {
+        flex: 1;
+        padding: 10px;
+        background: var(--primary-color);
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: background 0.2s;
+    }
+
+    .btn-action:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-action.secondary {
+        background: var(--bg-color);
+        color: var(--text-primary);
+    }
+
+    .btn-action.secondary:hover {
+        background: var(--border-color);
+    }
+
+    .empty-accounts {
+        grid-column: 1 / -1;
+        text-align: center;
+        background: white;
+        padding: 64px;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+
+    .empty-accounts h2 {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .empty-accounts p {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+    }
+
+    .create-account-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .create-account-buttons form {
+        display: inline-block;
+    }
+
+    .create-account-buttons button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .create-account-buttons button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+    }
+
+    @@media (max-width: 768px) {
+        .total-balance-card {
+            flex-direction: column;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .accounts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

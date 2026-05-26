@@ -1,0 +1,186 @@
+@model IEnumerable<BankApp.Core.Models.EWallet>
+@{
+    ViewData["Title"] = "E-Wallet";
+    decimal totalBalance = ViewBag.TotalBalance as decimal? ?? 0m;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>My E-Wallets</h2>
+                    <p class="text-muted">Manage your digital wallets and mobile money</p>
+                </div>
+                <div>
+                    <a href="/EWallet/Create" class="btn-modern btn-primary">
+                        <i class="fas fa-plus"></i> New Wallet
+                    </a>
+                </div>
+            </div>
+
+            <!-- Total Balance Card -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card gradient-primary text-white">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h5 class="card-title mb-1">Total E-Wallet Balance</h5>
+                                    <h2 class="mb-0">@totalBalance.ToString("C")</h2>
+                                    <small class="opacity-75">Across all your digital wallets</small>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <i class="fas fa-wallet fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallets Grid -->
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-wallet fa-3x text-muted mb-3"></i>
+                    <h4>No E-Wallets Yet</h4>
+                    <p class="text-muted">Create your first e-wallet to start managing digital payments</p>
+                    <a href="/EWallet/Create" class="btn-modern btn-primary mt-3">
+                        <i class="fas fa-plus"></i> Create E-Wallet
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var wallet in Model)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card wallet-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="card-title mb-1">@wallet.WalletName</h5>
+                                            <small class="text-muted">@wallet.WalletType.ToString()</small>
+                                        </div>
+                                        <div class="wallet-status">
+                                            <span class="badge @(wallet.Status == BankApp.Core.Models.EWalletStatus.Active ? "bg-success" : "bg-secondary")">
+                                                @wallet.Status.ToString()
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="wallet-balance mb-3">
+                                        <div class="text-muted small mb-1">Available Balance</div>
+                                        <div class="h4 mb-0">@wallet.AvailableBalance.ToString("C")</div>
+                                        @if (wallet.Balance != wallet.AvailableBalance)
+                                        {
+                                            <small class="text-muted">Total: @wallet.Balance.ToString("C")</small>
+                                        }
+                                    </div>
+
+                                    <div class="wallet-details mb-3">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small class="text-muted">Wallet Number</small>
+                                                <div class="font-monospace">@wallet.WalletNumber</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Created</small>
+                                                <div>@wallet.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if (wallet.LinkedAccount != null)
+                                    {
+                                        <div class="wallet-linked mb-3">
+                                            <small class="text-muted">
+                                                <i class="fas fa-link"></i> Linked to account ****@wallet.LinkedAccount.AccountNumber.Substring(Math.Max(0, wallet.LinkedAccount.AccountNumber.Length - 4))
+                                            </small>
+                                        </div>
+                                    }
+
+                                    <div class="wallet-actions">
+                                        <div class="btn-group w-100" role="group">
+                                            <a href="/EWallet/Details/@wallet.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <a href="/EWallet/Fund/@wallet.Id" class="btn btn-sm btn-success">
+                                                <i class="fas fa-plus"></i> Fund
+                                            </a>
+                                            <a href="/EWallet/Transfer/@wallet.Id" class="btn btn-sm btn-info">
+                                                <i class="fas fa-exchange-alt"></i> Transfer
+                                            </a>
+                                            <a href="/EWallet/Edit/@wallet.Id" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+.wallet-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border-color);
+}
+
+.wallet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.wallet-status {
+    position: relative;
+    top: -8px;
+}
+
+.wallet-balance .h4 {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.wallet-linked {
+    background: var(--bg-color);
+    padding: 8px;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.font-monospace {
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+}
+
+.btn-group .btn {
+    flex: 1;
+}
+
+.btn-group .btn:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.btn-group .btn:last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.btn-group .btn:not(:first-child):not(:last-child) {
+    border-radius: 0;
+}
+</style>

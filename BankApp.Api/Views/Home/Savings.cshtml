@@ -1,0 +1,286 @@
+@model IEnumerable<BankApp.Core.Models.Account>
+
+@{
+    ViewData["Title"] = "Savings Account";
+    decimal projectedInterest = ViewBag.ProjectedInterest ?? 0;
+    decimal monthlyInterest = ViewBag.MonthlyInterest ?? 0;
+}
+
+<div class="savings-container">
+    <div class="container">
+        <h1>Savings Account</h1>
+        
+        @if (Model != null && Model.Any())
+        {
+            foreach (var account in Model)
+            {
+                <div class="savings-card">
+                    <div class="savings-header">
+                        <div>
+                            <h2>@account.AccountType Account</h2>
+                            <p class="account-number">@account.AccountNumber</p>
+                        </div>
+                        <div class="savings-balance">
+                            <p class="label">Current Balance</p>
+                            <p class="amount">@account.Balance.ToString("C")</p>
+                        </div>
+                    </div>
+                    
+                    <div class="interest-section">
+                        <h3>Interest Projection (4% Annual)</h3>
+                        <div class="interest-cards">
+                            <div class="interest-card">
+                                <p class="label">Monthly Interest</p>
+                                <p class="value">@monthlyInterest.ToString("C")</p>
+                            </div>
+                            <div class="interest-card highlight">
+                                <p class="label">Annual Projected</p>
+                                <p class="value">@projectedInterest.ToString("C")</p>
+                            </div>
+                            <div class="interest-card">
+                                <p class="label">Interest Rate</p>
+                                <p class="value">4.00%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="savings-chart">
+                        <h3>Balance Projection</h3>
+                        <canvas id="savingsChart"></canvas>
+                    </div>
+
+                    <div class="savings-actions">
+                        <a href="/Home/Transactions" class="btn-primary">Transfer Funds</a>
+                        <a href="/Home/Calculator" class="btn-secondary">Calculate Growth</a>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-savings">
+                <div class="empty-state">
+                    <div class="empty-icon">🏦</div>
+                    <h2>No Savings Account</h2>
+                    <p>You don't have a savings account yet. Create one to start earning 4% annual interest!</p>
+                    <form asp-action="CreateSavingsAccount" asp-controller="Home" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-primary btn-large">
+                            <span>🏦</span> Open Savings Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Savings projection chart
+    const ctx = document.getElementById('savingsChart');
+    if (ctx) {
+        const currentBalance = @(Model?.FirstOrDefault()?.Balance ?? 0);
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Calculate projected balance with 4% annual interest compounded monthly
+        const data = [currentBalance];
+        let balance = currentBalance;
+        for (let i = 1; i < 12; i++) {
+            balance = balance * (1 + 0.04/12);
+            data.push(balance);
+        }
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Projected Balance',
+                    data: data,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+<style>
+    .savings-container {
+        padding: 40px 0;
+        background: var(--bg-color);
+        min-height: calc(100vh - 200px);
+    }
+
+    .savings-container h1 {
+        margin-bottom: 24px;
+    }
+
+    .savings-card {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: var(--shadow);
+        margin-bottom: 24px;
+    }
+
+    .savings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 24px;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 24px;
+    }
+
+    .savings-header h2 {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+
+    .account-number {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .savings-balance {
+        text-align: right;
+    }
+
+    .savings-balance .label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+
+    .savings-balance .amount {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--success-color);
+    }
+
+    .interest-section {
+        margin-bottom: 32px;
+    }
+
+    .interest-section h3 {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    .interest-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .interest-card {
+        background: var(--bg-color);
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .interest-card.highlight {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .interest-card .label {
+        font-size: 14px;
+        opacity: 0.8;
+        margin-bottom: 8px;
+    }
+
+    .interest-card .value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .savings-chart {
+        margin-bottom: 32px;
+    }
+
+    .savings-chart h3 {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    .savings-chart canvas {
+        max-height: 300px;
+    }
+
+    .savings-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .no-savings {
+        display: flex;
+        justify-content: center;
+        padding: 64px 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        background: white;
+        padding: 48px;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        max-width: 400px;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h2 {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        background: white;
+        color: var(--text-primary);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+</style>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BankApp</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Apply saved theme before page renders to prevent flash
+        (function() {
+            var savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 012-2h4a2 2 0 012 2v9"/>
+                    </svg>
+                    BankApp
+                </a>
+                <ul class="navbar-nav">
+                    <li><a href="/Home/Dashboard">Dashboard</a></li>
+                    <li><a href="/Home/Accounts">Accounts</a></li>
+                    <li><a href="/Home/Savings">Savings</a></li>
+                    <li><a href="/EWallet">E-Wallet</a></li>
+                    <li><a href="/Home/Transactions">Send Money</a></li>
+                    <li><a href="/Home/Analytics">Analytics</a></li>
+                    <li><a href="/Home/Calculator">Calculator</a></li>
+                    @if (Context.Session.GetInt32("UserId") != null)
+                    {
+                        <li>
+                            <a href="/Home/Notifications" class="notification-link">
+                                🔔 Notifications
+                                <span class="notification-badge" id="nav-notification-count"></span>
+                            </a>
+                        </li>
+                        <li><a href="/Home/Settings">⚙️ Settings</a></li>
+                        <li class="user-menu">
+                            <span class="user-name">👤 @Context.Session.GetString("UserName")</span>
+                            <a href="/Home/Logout" class="btn-logout">Logout</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li><a href="/Home/Login">Login</a></li>
+                        <li><a href="/Home/SignUp" class="btn-primary">Sign Up</a></li>
+                    }
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                <div class="container">
+                    @TempData["SuccessMessage"]
+                </div>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-error">
+                <div class="container">
+                    @TempData["ErrorMessage"]
+                </div>
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 BankApp. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    @using Microsoft.AspNetCore.Http
+</body>
+</html>
