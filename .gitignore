@@ -1,0 +1,51 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# Visual Studio cache/options
+*.cache
+*.log
+*.vspscc
+*.vssscc
+
+# Web.config transformations
+*.qrc
+
+# dotCover
+*.dotCover
+
+# IIS Express
+*.vs/config/
+
+# Publish output
+publish/
+
+# Packages
+*.nupkg
+*.snupkg
+
+# Others
+*.dbmdl
+*.bak
+*.tmp
+*.temp
+*~
